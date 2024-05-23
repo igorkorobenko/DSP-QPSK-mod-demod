@@ -1,14 +1,86 @@
 import tkinter as tk
 from tkinter import filedialog
+import random
+import numpy as np
+import math
+import matplotlib.pyplot as plt
 
 def execute_script():
     # Получение данных из текстовых полей
-    data1 = entry_order.get()
-    data2 = entry_lo.get()
+    mod_order = entry_order.get()
+    fs = entry_samplerate.get()
+    lo = entry_lo.get()
+    noise = entry_noise.get()
     folder_path = folder_var.get()
-    print(data1)
-    print(data2)
+    print(mod_order)
+    print(fs)
+    print(lo)
+    print(noise)
     print(folder_path)
+    qpsk_mod(mod_order, fs, lo, noise, folder_path)
+
+
+def qpsk_mod(mod_order, fs, lo, noise, folder_path):
+    data = [random.randint(0, 1) for _ in range(50)]
+    print(data)
+    stem_plot(data)
+    data_gray = gray_encode(data)
+    data_transformed = data_gray
+    for i in range(len(data)):
+        data_transformed[i] = 2*data_gray[i]-1
+
+    print(data_transformed)
+    # Разделение массива на четные и нечетные индексы
+    even_index_data = []
+    odd_index_data = []
+    is_even = True  
+    for num in data_transformed:
+        if is_even:
+            even_index_data.append(num)
+            is_even = False
+        else:
+            odd_index_data.append(num)
+            is_even = True
+
+    # Проверка длины массивов
+    if len(even_index_data) > len(odd_index_data):
+        even_index_data = even_index_data[:-1]  # Удалить последний элемент, если четных больше
+
+    # Создание двумерного массива
+    two_dim_array = np.column_stack((odd_index_data, even_index_data))
+
+    # задаем массив отсчетов
+    ts = np.arange(0, 1000/fs, 1/fs)
+
+    # bit_t = 200
+    # a = np.repeat(two_dim_array, bit_t)
+
+    for i in range (len(data)/2):
+        
+
+
+def gray_encode(binary_sequence):
+    gray_sequence = [binary_sequence[0]]
+    for i in range(1, len(binary_sequence)):
+        gray_bit = binary_sequence[i-1] ^ binary_sequence[i]
+        gray_sequence.append(gray_bit)
+    return gray_sequence
+
+
+
+
+def stem_plot(data):
+    # Построение stem-графика
+    plt.figure(figsize=(10, 4))
+    markerline, stemlines, baseline = plt.stem(data)
+    plt.setp(markerline, 'markerfacecolor', 'b')
+
+    plt.title('Stem-график данных (0 и 1)')
+    plt.xlabel('Индекс')
+    plt.ylabel('Значение')
+    plt.yticks([0, 1])  # Установка меток на оси Y для значений 0 и 1
+    plt.grid(True)
+    # plt.show()
 
 # Создание главного окна
 root = tk.Tk()
@@ -22,14 +94,14 @@ entry_order.grid(row=0, column=1)
 frame1 = tk.Frame(root, width=25)
 frame1.grid(row=0, column=2)
 
-label_discret = tk.Label(root, text="Частота дискретизации:", height=3)
-label_discret.grid(row=1, column=0)
-entry_discret = tk.Entry(root, width=25)
-entry_discret.grid(row=1, column=1)
+label_samplerate = tk.Label(root, text="Частота дискретизации:", height=3)
+label_samplerate.grid(row=1, column=0)
+entry_samplerate = tk.Entry(root, width=25)
+entry_samplerate.grid(row=1, column=1)
 frame2 = tk.Frame(root, width=25)
 frame2.grid(row=1, column=2)
 
-label_lo = tk.Label(root, text="Частота дискретизации:", height=3)
+label_lo = tk.Label(root, text="Несущая частота:", height=3)
 label_lo.grid(row=2, column=0)
 entry_lo = tk.Entry(root, width=25)
 entry_lo.grid(row=2, column=1)
